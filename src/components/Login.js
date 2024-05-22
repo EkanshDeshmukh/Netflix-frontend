@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
 import Header from './Header'
+import { checkValidData } from '../utils/Validate'
 
 const Login = () => {
     const [isSignIn, setIsSignIn] = useState(true)
@@ -11,7 +12,8 @@ const Login = () => {
     const password = useRef(null)
     const name = useRef(null)
     const handleBtnClick = () => {
-        const message = console.log(email.current.value, password.current.value);
+        const message = checkValidData(email.current.value, password.current.value);
+        setErrorMsg(message)
     }
 
     const toggleButton = () => {
