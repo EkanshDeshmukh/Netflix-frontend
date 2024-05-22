@@ -1,6 +1,9 @@
 import React, { useState, useRef } from 'react'
 import Header from './Header'
 import { checkValidData } from '../utils/Validate'
+import { auth } from '../utils/Firebase'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+
 
 const Login = () => {
     const [isSignIn, setIsSignIn] = useState(true)
@@ -14,6 +17,35 @@ const Login = () => {
     const handleBtnClick = () => {
         const message = checkValidData(email.current.value, password.current.value);
         setErrorMsg(message)
+
+        if (!isSignIn) {
+            //Sign Up Form
+            createUserWithEmailAndPassword(auth, email.current.value, password.current.value)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    console.log('successfully sing up', user);
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    setErrorMsg(errorCode + '-' + errorMessage)
+                });
+        }
+        else {
+            //sign in form 
+            signInWithEmailAndPassword(auth, email.current.value, password.current.value)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    console.log('succesfully sign in ', user);
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    setErrorMsg(errorCode + '-' + errorMessage)
+
+                });
+
+        }
     }
 
     const toggleButton = () => {
