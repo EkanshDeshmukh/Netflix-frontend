@@ -1,19 +1,24 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import Header from './Header'
 import { checkValidData } from '../utils/Validate'
 import { auth } from '../utils/Firebase'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { useNavigate } from 'react-router-dom';
+import { addUser } from '../utils/userSlice';
+import { useDispatch } from 'react-redux';
 
 
 const Login = () => {
     const [isSignIn, setIsSignIn] = useState(true)
     const [errorMsg, setErrorMsg] = useState(null)
-
-    document.title = isSignIn ? "NetFlix | Sign in" : "NetFlix | Sign up"
-
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
     const email = useRef(null)
     const password = useRef(null)
     const name = useRef(null)
+    useEffect(() => {
+        document.title = isSignIn ? "NetFlix | Sign in" : "NetFlix | Sign up";
+    }, [isSignIn]);
     const handleBtnClick = () => {
         const message = checkValidData(email.current.value, password.current.value);
         setErrorMsg(message)
@@ -23,7 +28,16 @@ const Login = () => {
             createUserWithEmailAndPassword(auth, email.current.value, password.current.value)
                 .then((userCredential) => {
                     const user = userCredential.user;
-                    console.log('successfully sing up', user);
+                    updateProfile(user, {
+                        displayName: name.current.value, photoURL: "https://avatars.githubusercontent.com/u/164729969?v=4"
+                    }).then(() => {
+                        const { email, uid, displayName,photoURL } = auth.currentUser;
+                        dispatch(addUser({ email, uid, displayName,photoURL }))
+                        navigate('/browse')
+                    }).catch((error) => {
+                        setErrorMsg(error.message)
+                    });
+                    navigate('/browse')
                 })
                 .catch((error) => {
                     const errorCode = error.code;
@@ -36,7 +50,8 @@ const Login = () => {
             signInWithEmailAndPassword(auth, email.current.value, password.current.value)
                 .then((userCredential) => {
                     const user = userCredential.user;
-                    console.log('succesfully sign in ', user);
+                    navigate('/browse')
+
                 })
                 .catch((error) => {
                     const errorCode = error.code;
@@ -50,6 +65,7 @@ const Login = () => {
 
     const toggleButton = () => {
         setIsSignIn(!isSignIn)
+        setErrorMsg(null)
     }
     return (
         <div className='relative text-white font-semibold'>
@@ -65,7 +81,7 @@ const Login = () => {
                 />}
                 <input
                     ref={email}
-                    type="text"
+                    type="email"
                     placeholder="Enter your Email "
                     className="p-4 my-3 border-gray-700 w-full bg-gray-700"
                 />
