@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { auth } from '../utils/Firebase';
-import { signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { addUser, removeUser } from '../utils/userSlice';
 
 const Header = () => {
+    const dispatch = useDispatch()
     const user = useSelector(store => store.user)
     const navigate = useNavigate();
 
@@ -17,6 +19,21 @@ const Header = () => {
             console.error("Sign out error", error);
         });
     };
+    useEffect(() => {
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const { uid, email, displayName } = user
+                dispatch(addUser({
+                    uid, email, displayName
+                }))
+                navigate('/browse')
+            }
+            else {
+                dispatch(removeUser())
+                navigate('/')
+            }
+        })
+    }, [])
 
     return (
         <div className="flex w-screen items-center justify-between absolute top-0 z-10 p-4 bg-transparent">
